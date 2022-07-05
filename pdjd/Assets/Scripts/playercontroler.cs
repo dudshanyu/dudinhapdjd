@@ -6,14 +6,21 @@ using UnityEngine.InputSystem;
 
 public class playercontroler : MonoBehaviour
 {
+    public int coin = 0;
     public float movespeed;
+    public float maxVelocity;
+    public float rayDistance;
+    public LayerMask groundLayer;
+    public float JumpForce;
     
     private Gamecontrol _gamecontrol;
     private PlayerInput _playerinput;
     private Camera _mainCamera;
     private Rigidbody _rigidbody;
-
     private Vector2 _movement;
+
+    private Vector2 _moveInput;
+    private bool _isGrounded;
 
     private void OnEnable()
     {
@@ -45,9 +52,8 @@ public class playercontroler : MonoBehaviour
             //atribuir ao moveinput o valor proveniente ao input do jogador com o Vector2
             _movement = obj.ReadValue<Vector2>();
         }
-        
     }
-
+    
     private void Move()
     {
         //calcule o movimento no eixo da camera para o movimento frente/tras
@@ -64,5 +70,47 @@ public class playercontroler : MonoBehaviour
     private void FixedUpdate()
     {
         Move();
+        LimitVelocity();
     }
-}
+
+    private void LimitVelocity()
+    {
+        Vector3 velocity = _rigidbody.velocity;
+        if (Mathf.Abs(velocity.x) > maxVelocity) velocity.x = maxVelocity;
+        velocity.z = Mathf.Clamp(velocity.z, -maxVelocity, maxVelocity);
+        _rigidbody.velocity = velocity;
+    }
+
+    private void Jump()
+    {
+        if (_isGrounded) _rigidbody.AddForce(Vector3.up * JumpForce, ForceMode.Impulse);
+    }
+
+    private void Checkground()
+    {
+        _isGrounded = Physics.Raycast(origin: transform.position, direction: Vector3.down, rayDistance,
+            groundLayer);
+    }
+
+    private void update()
+    {
+        Checkground();
+    }
+
+    private void onDrawgizmos()
+    {
+        Debug.DrawRay(start:transform.position, dir:Vector3.down * rayDistance, Color.yellow);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Coin"))
+        {
+            coin++;
+            Destroy(other.gameObject);
+        }
+    }
+    
+        }
+    
+
