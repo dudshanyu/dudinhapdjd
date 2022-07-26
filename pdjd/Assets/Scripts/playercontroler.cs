@@ -1,17 +1,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
+using Unity.Collections.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class playercontroler : MonoBehaviour
 {
     public int coin = 0;
+    public TMP_Text coinText;
     public float movespeed;
     public float maxVelocity;
     public float rayDistance;
     public LayerMask groundLayer;
-    public float JumpForce;
+    public float jumpForce;
     
     private Gamecontrol _gamecontrol;
     private PlayerInput _playerinput;
@@ -52,6 +55,11 @@ public class playercontroler : MonoBehaviour
             //atribuir ao moveinput o valor proveniente ao input do jogador com o Vector2
             _movement = obj.ReadValue<Vector2>();
         }
+
+        if (obj.action.name.CompareTo(_gamecontrol.Gameplay.Jump.name) == 0)
+        {
+            if (obj.performed) Jump();
+        }
     }
     
     private void Move()
@@ -83,21 +91,21 @@ public class playercontroler : MonoBehaviour
 
     private void Jump()
     {
-        if (_isGrounded) _rigidbody.AddForce(Vector3.up * JumpForce, ForceMode.Impulse);
+        if (_isGrounded) _rigidbody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
 
-    private void Checkground()
+    private void CheckGround()
     {
         _isGrounded = Physics.Raycast(origin: transform.position, direction: Vector3.down, rayDistance,
             groundLayer);
     }
 
-    private void update()
+    private void Update()
     {
-        Checkground();
+        CheckGround();
     }
 
-    private void onDrawgizmos()
+    private void OnDrawGizmos()
     {
         Debug.DrawRay(start:transform.position, dir:Vector3.down * rayDistance, Color.yellow);
     }
@@ -105,12 +113,16 @@ public class playercontroler : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Coin"))
+            
         {
             coin++;
+            coinText.text = coin.ToString();
             Destroy(other.gameObject);
+           
+            
         }
     }
     
-        }
+}
     
 
